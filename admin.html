@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Cositas de Ocasiones</title>
+
+<style>
+  :root{
+    --wood-1: #3b2f2a;
+    --wood-2: #6b4f3e;
+    --wood-3: #a77b58;
+    --accent:  #ffd1a9;
+    --bg: #fbf7f3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),url("fondo.png");background-size: cover;background-repeat: no-repeat;background-position: center;background-attachment: fixed;}
+  header{ padding:18px 20px; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(90deg,var(--wood-1),var(--wood-2)); color:var(--accent); }
+  header a{background:transparent; border:1px solid var(--accent); color:var(--accent); padding:8px 12px; border-radius:8px; text-decoration:none; font-size: 18px;}
+  main {max-width: 900px; margin: 0 auto; padding: 16px;}
+  form{background: linear-gradient(180deg,#cca788,#846246);padding:16px;border-radius:12px;box-shadow: 0 8px 20px rgba(0,0,0,0.08); border:1px solid rgba(0,0,0,0.04); }
+  label{ display:block; margin:8px 0 6px; font-weight:600; color:var(--wood-1); }
+  input[type="text"], input[type="number"], textarea, select{ width:100%; padding:10px; border-radius:8px; border:1px solid #dcc7b0; background: #fff; color:var(--wood-1); }
+  textarea{ min-height:90px; resize:vertical; }
+  .img-previews{ display:flex; gap:8px; margin-top:8px; }
+  .img-previews img{ width:100px; height:80px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,0.06); }
+  .actions{ display:flex; gap:8px; margin-top:12px; }
+  .btn{ padding:10px 12px; border-radius:8px; cursor:pointer; border:0; color:var(--accent); background:var(--wood-2); }
+  .btn.danger{ background:#8b2f2f; }
+  .small{ padding:8px 10px; font-size:.9rem; }
+  .list{ background:#cca788; padding:8px; border-radius:12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); border:1px solid rgba(0,0,0,0.04); }
+  .prod{ display:flex; gap:12px; align-items:center; padding:10px; border-radius:8px; border-bottom:1px dashed #efe0d2; }
+  .prod:last-child{ border-bottom:0; }
+  .prod img{ width:80px; height:64px; object-fit:cover; border-radius:8px; }
+  .prod .info{ flex:1; }
+  .prod .info h4{ margin:0 0 6px; color:var(--wood-1); }
+  .prod .prod-controls{ display:flex; gap:8px; }
+  .empty{ padding:30px; text-align:center; color:#5c3f34; }
+  @media (max-width:980px){ main{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Cositas de Ocasiones — Administrador</h1>
+  <nav>
+    <a class="index-link" href="index.html" title="Panel de catalogo">Catalogo</a>
+  </nav>
+</header>
+
+<main>
+
+<h2 style="color: #cca788;">Agregar / Editar Producto</h2>
+
+<form id="productForm">
+  <input type="hidden" id="productId">
+
+  <label>Título:</label>
+  <input type="text" id="title" required>
+
+  <label>Descripción:</label>
+  <textarea id="description" required></textarea>
+
+  <label>Precio:</label>
+  <input type="number" id="price" min="0" required>
+
+  <label>Imágenes (máx 3):</label>
+  <input type="file" id="images" accept="image/*" multiple>
+
+  <button type="submit" class="btn" id="saveBtn">Guardar</button>
+  <button type="button" class="btn danger hidden" id="cancelEdit">Cancelar edición</button>
+</form>
+
+<h2 style="color: #cca788;">Lista de productos</h2>
+<div id="productList" class="product-list"></div>
+
+</main>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabase = window.supabase.createClient(
+  "https://vasyvyfkwrdtcptpbkkm.supabase.co",
+  "sb_publishable_4UwWL1TATizmHTxG-QoWOg_WB4xA9LM"
+);
+
+const productListEl = document.getElementById("productList");
+const form = document.getElementById("productForm");
+const productIdInput = document.getElementById("productId");
+const titleInput = document.getElementById("title");
+const descInput = document.getElementById("description");
+const priceInput = document.getElementById("price");
+const imagesInput = document.getElementById("images");
+const cancelEditBtn = document.getElementById("cancelEdit");
+
+/* --- SUPABASE: CRUD --- */
+
+// Obtener productos
+async function getProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error cargando productos:", error);
+    return [];
+  }
+
+  return data;
+}
+
+// Subir imágenes (máx 3)
+async function uploadImages(files) {
+  let result = [];
+
+  for (let file of files) {
+    const name = crypto.randomUUID() + "-" + file.name;
+
+    const { error } = await supabase
+      .storage
+      .from("product-images")
+      .upload(name, file);
+
+    if (error) {
+      console.error("Error subiendo imagen:", error);
+      continue;
+    }
+
+    const { data } = supabase
+      .storage
+      .from("product-images")
+      .getPublicUrl(name);
+
+    result.push(data.publicUrl);
+  }
+
+  return result;
+}
+
+// Crear producto
+async function createProduct(product) {
+  const { data, error } = await supabase
+    .from("products")
+    .insert(product)
+    .select();
+
+  if (error) console.error(error);
+  return data?.[0];
+}
+
+// Editar producto
+async function updateProduct(id, product) {
+  const { error } = await supabase
+    .from("products")
+    .update(product)
+    .eq("id", id);
+
+  if (error) console.error(error);
+}
+
+// Eliminar producto
+async function deleteProduct(id) {
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", id);
+
+  if (error) console.error(error);
+}
+
+/* --- RENDER LISTA --- */
+async function renderProductList() {
+  productListEl.innerHTML = "<p>Cargando...</p>";
+  const products = await getProducts();
+  productListEl.innerHTML = "";
+
+  products.forEach(prod => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = prod.images?.[0] || "";
+    img.alt = prod.title;
+
+    const h3 = document.createElement("h3");
+    h3.textContent = prod.title;
+
+    const p = document.createElement("p");
+    p.textContent = prod.description;
+
+    const price = document.createElement("p");
+    price.textContent = "$" + prod.price;
+
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "Editar";
+    editBtn.className = "btn";
+    editBtn.onclick = () => loadProductForEdit(prod);
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "Eliminar";
+    delBtn.className = "btn danger";
+    delBtn.onclick = async () => {
+      if (confirm("¿Eliminar este producto?")) {
+        await deleteProduct(prod.id);
+        renderProductList();
+      }
+    };
+
+    card.append(img, h3, p, price, editBtn, delBtn);
+    productListEl.appendChild(card);
+  });
+}
+
+/* --- EDITAR PRODUCTO --- */
+function loadProductForEdit(prod) {
+  productIdInput.value = prod.id;
+  titleInput.value = prod.title;
+  descInput.value = prod.description;
+  priceInput.value = prod.price;
+  cancelEditBtn.classList.remove("hidden");
+}
+
+/* --- CANCELAR EDICIÓN --- */
+cancelEditBtn.onclick = () => {
+  form.reset();
+  productIdInput.value = "";
+  cancelEditBtn.classList.add("hidden");
+};
+
+/* --- GUARDAR PRODUCTO --- */
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const id = productIdInput.value;
+  const title = titleInput.value.trim();
+  const description = descInput.value.trim();
+  const price = priceInput.value;
+
+  const files = imagesInput.files;
+  let urls = [];
+
+  if (files.length > 0) {
+    const toUpload = Array.from(files).slice(0, 3);
+    urls = await uploadImages(toUpload);
+  }
+
+  if (!id) {
+    // Crear
+    await createProduct({
+      title,
+      description,
+      price,
+      images: urls,
+    });
+  } else {
+    // Editar
+    const updateData = {
+      title,
+      description,
+      price,
+      updated_at: new Date(),
+    };
+
+    if (urls.length > 0) updateData.images = urls;
+
+    await updateProduct(id, updateData);
+  }
+
+  form.reset();
+  productIdInput.value = "";
+  cancelEditBtn.classList.add("hidden");
+  renderProductList();
+});
+
+/* INICIO */
+renderProductList();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cositas de Ocasiones — Catálogo</title>
+
+<!-- ESTILOS IGUALES A TU ORIGINAL -->
+<style>
+  :root{
+    --wood-1: #93786d;
+    --wood-2: #6b4f3e;
+    --wood-3: #a77b58;
+    --accent:  #ffd1a9;
+    --text: #1b120f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(180deg,var(--wood-3),#f3e1cf 60%); color:var(--text);-webkit-font-smoothing:antialiased; background-image:linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),url("fondo.png");background-size: cover;background-repeat: no-repeat;background-position: center;background-attachment: fixed;}
+  header{background: linear-gradient(90deg,var(--wood-1),var(--wood-2)); color:var(--accent); padding:20px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+  header h1{ margin:0; font-size:1.4rem; letter-spacing:1px;}
+  header a.admin-link{background:transparent; border:1px solid var(--accent); color:var(--accent); padding:8px 12px; border-radius:8px; text-decoration:none;}
+  main{padding:20px; max-width:1100px; margin:0 auto;}
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:18px; }
+  .card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+    border-radius:12px; padding:12px; box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    cursor:pointer; transition:transform .16s ease, box-shadow .16s ease; border: 1px solid rgba(0,0,0,0.06);
+  }
+  .card:hover{ transform:translateY(-6px); box-shadow: 0 12px 26px rgba(0,0,0,0.18); }
+  .thumb{ width:100%; height:200px; border-radius:10px; overflow:hidden;
+    background: linear-gradient(180deg,var(--wood-2),var(--wood-3)); display:flex; align-items:center; justify-content:center;
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .meta{ padding:8px 4px; }
+  .meta h3{ margin:0 0 6px 0; font-size:1.05rem; color:var(--wood-1); }
+  .meta p{ margin:0; color: #3a2a24; font-size:.9rem; }
+  .price{ font-weight:700; color:var(--wood-1); margin-top:8px; }
+
+  /* Modal */
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(11,8,6,0.55); display:none; align-items:center; justify-content:center; z-index:9999; }
+  .modal{ background: linear-gradient(180deg, #fff, #fbf7f3); max-width:900px; width:94%; border-radius:12px; overflow:hidden; display:flex; gap:12px; padding:18px; box-shadow: 0 20px 40px rgba(0,0,0,0.45); }
+  .gallery{ flex:1; min-width:0; display:flex; flex-direction:column; gap:10px; }
+  .main-image{ height:420px; border-radius:10px; overflow:hidden; background:var(--wood-3); display:flex; align-items:center; justify-content:center; }
+  .main-image img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb-row{ display:flex; gap:8px; }
+  .thumb-row img{ width: calc((100% - 16px)/3); height:80px; object-fit:cover; border-radius:8px; border:2px solid transparent; cursor:pointer; }
+  .thumb-row img.active{ border-color: var(--wood-1); transform:scale(.98); }
+
+  .info{ width:360px; max-width:40%; min-width:220px; display:flex; flex-direction:column; gap:12px; }
+  .info h2{ margin:0; color:var(--wood-1); }
+  .info .desc{ font-size:.95rem; color:#4a382f; }
+  .info .actions{ margin-top:auto; display:flex; gap:10px; align-items:center; }
+  .btn{ background:var(--wood-2); color:var(--accent); border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
+  .btn.secondary{ background:transparent; border:1px solid var(--wood-2); color:var(--wood-1); }
+  .close-btn{ position:absolute; right:22px; top:18px; background:transparent; border:0; color:var(--accent); font-size:1.4rem; cursor:pointer; }
+
+  footer{ text-align:center; padding:28px 12px; color:#caa290; }
+
+  @media (max-width:900px){
+    .modal{ flex-direction:column; padding:12px; }
+    .info{ width:100%; max-width:100%; }
+    .main-image{ height:260px; }
+  }
+
+  .empty{ padding:36px; text-align:center; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15)); border:1px dashed rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Cositas de Ocasiones - Prendas y Calzados 💯% Original</h1>
+  <nav>
+    <a class="admin-link" href="admin.html" title="Panel de administración"> Administrador</a>
+  </nav>
+</header>
+
+<main>
+  <section>
+    <h2 style="color:var(--wood-1)">Catálogo</h2>
+    <div id="catalog" class="grid" aria-live="polite"></div>
+    <div id="empty" class="empty" style="display:none; margin-top:16px;">      
+    </div>
+  </section>
+</main>
+
+<!-- MODAL (SIN CAMBIOS) -->
+<div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <button class="close-btn" id="modalClose" aria-label="Cerrar">✕</button>
+    <div class="gallery">
+      <div class="main-image" id="mainImageContainer">
+        <img id="mainImage" alt="">
+      </div>
+      <div class="thumb-row" id="thumbRow" role="tablist"></div>
+    </div>
+    <aside class="info">
+      <h2 id="modalTitle"></h2>
+      <div class="desc" id="modalDesc"></div>
+      <div class="price" id="modalPrice"></div>
+      <div class="actions">
+        <button class="btn" id="buyBtn">Agregar al carrito</button>
+        <button class="btn secondary" id="shareBtn">Compartir</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer>
+  © <span id="year"></span> Cositas de Ocasiones
+</footer>
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabase = window.supabase.createClient(
+  "https://vasyvyfkwrdtcptpbkkm.supabase.co",
+  "sb_publishable_4UwWL1TATizmHTxG-QoWOg_WB4xA9LM"
+);
+
+// Obtener productos de Supabase
+async function getProducts() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error cargando productos:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// Render del catálogo
+async function renderCatalog() {
+  const container = document.getElementById("catalog");
+  const emptyBox = document.getElementById("empty");
+  container.innerHTML = "";
+
+  const products = await getProducts();
+
+  if (!products.length) {
+    emptyBox.style.display = "block";
+    return;
+  }
+  emptyBox.style.display = "none";
+
+  products.forEach(prod => {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", prod.title);
+
+    card.addEventListener("click", () => openModal(prod));
+    card.addEventListener("keydown", (e)=>{ if(e.key==="Enter") openModal(prod); });
+
+    const thumb = document.createElement("div");
+    thumb.className = "thumb";
+    const img = document.createElement("img");
+
+    img.src = prod.images?.[0] || "";
+    img.alt = prod.title;
+    thumb.appendChild(img);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = prod.title;
+
+    const p = document.createElement("p");
+    p.textContent = prod.description;
+
+    const price = document.createElement("div");
+    price.className = "price";
+    price.textContent = "$" + prod.price;
+
+    meta.append(h3,p,price);
+    card.append(thumb, meta);
+    container.appendChild(card);
+  });
+}
+
+// --- Modal ---
+const modalBackdrop = document.getElementById("modalBackdrop");
+const mainImage = document.getElementById("mainImage");
+const thumbRow = document.getElementById("thumbRow");
+const modalTitle = document.getElementById("modalTitle");
+const modalDesc = document.getElementById("modalDesc");
+const modalPrice = document.getElementById("modalPrice");
+const modalClose = document.getElementById("modalClose");
+
+let currentImages = [];
+
+function openModal(product){
+  modalTitle.textContent = product.title;
+  modalDesc.textContent = product.description;
+  modalPrice.textContent = "$" + product.price;
+
+  currentImages = [...(product.images || [])];
+  while(currentImages.length < 3) currentImages.push(currentImages[currentImages.length-1]);
+
+  renderModalImages();
+  modalBackdrop.style.display = "flex";
+  modalBackdrop.setAttribute("aria-hidden","false");
+}
+
+function closeModal(){
+  modalBackdrop.style.display = "none";
+  modalBackdrop.setAttribute("aria-hidden","true");
+}
+
+function renderModalImages(){
+  thumbRow.innerHTML = "";
+  currentImages.forEach((src, idx)=>{
+    const t = document.createElement("img");
+    t.src = src;
+    t.addEventListener("click", ()=> setActiveImage(idx));
+    thumbRow.appendChild(t);
+  });
+  setActiveImage(0);
+}
+
+function setActiveImage(i){
+  mainImage.src = currentImages[i];
+  [...thumbRow.children].forEach((el,idx)=>{
+    el.classList.toggle("active", idx===i);
+  });
+}
+
+modalClose.addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", e=>{
+  if (e.target===modalBackdrop) closeModal();
+});
+document.addEventListener("keydown", e=>{
+  if (e.key==="Escape") closeModal();
+});
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+renderCatalog();
+</script>
+</body>
+</html>
