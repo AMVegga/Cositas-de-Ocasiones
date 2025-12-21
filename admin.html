@@ -105,7 +105,7 @@ button.danger{background:#8b2f2f}
 <form id="productForm">
   <input type="hidden" id="productId">
 
-  <input id="title" placeholder="Título" required>
+  <input id="title" placeholder="Nombre del producto" required>
   <textarea id="description" placeholder="Descripción" required></textarea>
   <input id="price" type="number" placeholder="Precio" required>
 
@@ -201,7 +201,7 @@ async function renderProductList(){
       <img src="${p.images?.[0]||""}">
       <h3>${p.title}</h3>
       <p>${p.description}</p>
-      <p>$${p.price}</p>
+      <p>S/.${p.price}</p>
       <button onclick='edit(${JSON.stringify(p)})'>Editar</button>
       <button class="danger" onclick="remove('${p.id}')">Eliminar</button>
     `;

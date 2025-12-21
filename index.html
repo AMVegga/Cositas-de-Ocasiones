@@ -176,7 +176,7 @@ async function renderCatalog() {
 
     const price = document.createElement("div");
     price.className = "price";
-    price.textContent = "$" + prod.price;
+    price.textContent = "S/." + prod.price;
 
     meta.append(h3,p,price);
     card.append(thumb, meta);
@@ -198,7 +198,7 @@ let currentImages = [];
 function openModal(product){
   modalTitle.textContent = product.title;
   modalDesc.textContent = product.description;
-  modalPrice.textContent = "$" + product.price;
+  modalPrice.textContent = "S/." + product.price;
 
   currentImages = Array.isArray(product.images)
   ? product.images
