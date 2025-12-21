@@ -52,16 +52,18 @@
   .btn{ background:var(--wood-2); color:var(--accent); border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
   .btn.secondary{ background:transparent; border:1px solid var(--wood-2); color:var(--wood-1); }
   .close-btn{ position:absolute; right:22px; top:18px; background:transparent; border:0; color:var(--accent); font-size:1.4rem; cursor:pointer; }
-
+  .empty{ padding:36px; text-align:center; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15)); border:1px dashed rgba(0,0,0,0.06); }
   footer{ text-align:center; padding:28px 12px; color:#caa290; }
 
-  @media (max-width:900px){
-    .modal{ flex-direction:column; padding:12px; }
-    .info{ width:100%; max-width:100%; }
-    .main-image{ height:260px; }
-  }
+  @media (max-width:900px){.modal{ flex-direction:column; padding:12px; }.info{ width:100%; max-width:100%; }.main-image{ height:260px; } }
+  @media (max-width: 600px){header{ flex-direction: column; gap: 12px; text-align: center; } header h1{ font-size: 1.1rem; line-height: 1.3; } }
+  
+  /* Ocultar botones temporalmente */
+#buyBtn,
+#shareBtn {
+  display: none;
+}
 
-  .empty{ padding:36px; text-align:center; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15)); border:1px dashed rgba(0,0,0,0.06); }
 </style>
 </head>
 <body>
@@ -111,14 +113,14 @@
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabase = window.supabase.createClient(
-  "https://vasyvyfkwrdtcptpbkkm.supabase.co",
-  "sb_publishable_4UwWL1TATizmHTxG-QoWOg_WB4xA9LM"
+const supabaseClient = window.supabase.createClient(
+  "https://qbejboipricdftbvwvoq.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFiZWpib2lwcmljZGZ0YnZ3dm9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyODA5NDYsImV4cCI6MjA4MTg1Njk0Nn0.XjMDRDGE39zWmGndfhKicU_ZCoPrk4UTK3Hqs0KqlcI"
 );
 
 // Obtener productos de Supabase
 async function getProducts() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
@@ -159,7 +161,7 @@ async function renderCatalog() {
     thumb.className = "thumb";
     const img = document.createElement("img");
 
-    img.src = prod.images?.[0] || "";
+    img.src = Array.isArray(prod.images) ? prod.images[0] : prod.images;
     img.alt = prod.title;
     thumb.appendChild(img);
 
@@ -198,7 +200,12 @@ function openModal(product){
   modalDesc.textContent = product.description;
   modalPrice.textContent = "$" + product.price;
 
-  currentImages = [...(product.images || [])];
+  currentImages = Array.isArray(product.images)
+  ? product.images
+  : typeof product.images === "string"
+    ? [product.images]
+    : [];
+
   while(currentImages.length < 3) currentImages.push(currentImages[currentImages.length-1]);
 
   renderModalImages();
