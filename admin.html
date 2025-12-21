@@ -134,10 +134,16 @@ const imagesInput = document.getElementById("images");
 const loginBox = document.getElementById("loginBox");
 const panel = document.getElementById("panel");
 
-supabaseClient.auth.onAuthStateChange((_,session)=>{
-  loginBox.classList.toggle("hidden",!!session);
-  panel.classList.toggle("hidden",!session);
-  if(session) renderProductList();
+let alreadyRendered = false;
+
+supabaseClient.auth.onAuthStateChange((_, session) => {
+  loginBox.classList.toggle("hidden", !!session);
+  panel.classList.toggle("hidden", !session);
+
+  if (session && !alreadyRendered) {
+    renderProductList();
+    alreadyRendered = true;
+  }
 });
 
 // LOGIN
@@ -182,8 +188,6 @@ async function uploadImages(files){
 
   return urls;
 }
-
-
 
 // CRUD
 async function getProducts(){
