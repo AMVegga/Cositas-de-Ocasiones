@@ -23,8 +23,7 @@
   .grid{ display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:18px; }
   .card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
     border-radius:12px; padding:12px; box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-    cursor:pointer; transition:transform .16s ease, box-shadow .16s ease; border: 1px solid rgba(0,0,0,0.06);
-  }
+    cursor:pointer; transition:transform .16s ease, box-shadow .16s ease; border: 1px solid rgba(0,0,0,0.06);position: relative; }
   .card:hover{ transform:translateY(-6px); box-shadow: 0 12px 26px rgba(0,0,0,0.18); }
   .thumb{ width:100%; height:200px; border-radius:10px; overflow:hidden;
     background: linear-gradient(180deg,var(--wood-2),var(--wood-3)); display:flex; align-items:center; justify-content:center;
@@ -32,7 +31,7 @@
   .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
   .meta{ padding:8px 4px; }
   .meta h3{ margin:0 0 6px 0; font-size:1.05rem; color:var(--wood-1); }
-  .meta p{ margin:0; color: #3a2a24; font-size:.9rem; }
+  .meta p{ margin:0; color: #b88e7e; font-size:.9rem; }
   .price{ font-weight:700; color:var(--wood-1); margin-top:8px; }
 
   /* Modal */
@@ -47,14 +46,20 @@
   input {margin: 10PX;padding: 8px;width: 100%;max-width: 300px;border: 1px solid #0e0909a3;border-radius: 10px; }
   .info{ width:360px; max-width:40%; min-width:220px; display:flex; flex-direction:column; gap:12px; }
   .info h2{ margin:0; color:var(--wood-1); }
-  .info .desc{ font-size:.95rem; color:#4a382f; }
+  .info .desc{ font-size:.95rem; color:#744a35; }
   .info .actions{ margin-top:auto; display:flex; gap:10px; align-items:center; }
   .btn{ background:var(--wood-2); color:var(--accent); border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
   .btn.secondary{ background:transparent; border:1px solid var(--wood-2); color:var(--wood-1); }
   .close-btn{ position:absolute; right:22px; top:18px; background:transparent; border:0; color:var(--accent); font-size:1.4rem; cursor:pointer; }
   .empty{ padding:36px; text-align:center; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.15)); border:1px dashed rgba(0,0,0,0.06); }
   footer{ text-align:center; padding:28px 12px; color:#caa290; }
-
+  .sold-badge { position: absolute;top: 12px;left: 12px;background: rgba(0,0,0,0.75);color: #fff;padding: 6px 10px;border-radius: 6px;font-weight: bold;font-size: 0.8rem;z-index: 2; }
+  .card.sold { position: relative;}
+  .card.sold::after { content: "VENDIDO";position: absolute;inset: 0;color: #fb0505d0;font-size: 1.6rem;font-weight: 800;display: flex;align-items: center;justify-content: center;border-radius: 12px;letter-spacing: 2px;pointer-events: none;}
+  button,.btn { transition:transform 0.15s ease,box-shadow 0.15s ease,background-color 0.15s ease;}
+  button:hover,.btn:hover { transform: translateY(-2px) scale(1.02);box-shadow: 0 6px 14px rgba(0,0,0,0.25);}
+  button:active,.btn:active { transform: translateY(0) scale(0.98);box-shadow: 0 2px 6px rgba(0,0,0,0.25);}
+  button:focus-visible,.btn:focus-visible {outline: 2px solid #ffd1a9;outline-offset: 2px;}
   @media (max-width:900px){.modal{ flex-direction:column; padding:12px; }.info{ width:100%; max-width:100%; }.main-image{ height:260px; } }
   @media (max-width: 600px){header{ flex-direction: column; gap: 12px; text-align: center; } header h1{ font-size: 1.1rem; line-height: 1.3; } }
   @media (max-width: 600px){input { max-width: 90%; }}
@@ -172,7 +177,10 @@ async function renderCatalog(products = null) {
   data.forEach(prod => {
     const card = document.createElement("article");
     card.className = "card";
-    card.tabIndex = 0;
+    
+    if (prod.sold) {
+    card.classList.add("sold");
+    }
 
     card.addEventListener("click", () => openModal(prod));
 
