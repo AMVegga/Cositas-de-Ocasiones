@@ -66,6 +66,13 @@ button.danger{background:#8b2f2f}
   gap:16px;
 }
 
+button.vendido{background:hsla(133, 35%, 39%, 0.795)}
+.product-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+}
+
 button,
 .btn {
   transition: 
@@ -237,9 +244,9 @@ async function renderProductList(){
       <h3>${p.title}</h3>
       <p>${p.description}</p>
       <p>S/.${p.price}</p>
-      <button onclick='edit(${JSON.stringify(p)})'>Editar</button>
       <button class="danger" onclick="remove('${p.id}')">Eliminar</button>
-      <button onclick="toggleSold('${p.id}', ${p.sold})">${p.sold ? "Desmarcar" : "Marcar como vendido"}</button>
+      <button onclick='edit(${JSON.stringify(p)})'>Editar</button>
+      <button class="vendido" onclick="toggleSold('${p.id}', ${p.sold})">${p.sold ? "Desmarcar" : "Vendido"}</button>
     `;
     productList.appendChild(c);
   });
